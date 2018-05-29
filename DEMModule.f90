@@ -1,30 +1,21 @@
 module DEMModule
     use MethodModule
+    use ConstModule
     implicit none
-    
-    real(8) :: delta_t = 0.01
 contains
-    function loop(points, springs, x, d) result(tu)
-        real(8) points(:,:)
-        real(8) springs(:,:,:)
-        real(8) x(:,:)
-        real(8) d(:,:)
+    function initF(filename, n) result(f)
+        character(*) filename
+        real(8), allocatable :: f(:,:), f_tmp(:,:)
+        integer n, m, i, j, k
         
-        real(8), allocatable :: x_old(:,:)
-        real(8), allocatable :: u(:,:)
-        real(8), allocatable :: spring_flag(:,:)
-        real(8), allocatable :: e_mat(:,:,:), f_mat(:,:,:)
-        integer n, i, j
-        real(8) tu 
-
-        f_mat = 0.0d0
+        f_tmp = readFile(filename, 4)
+        n = size(f_tmp, 1)
+        allocate(f(n,3))
         
-        call makeD(x,d)
-        !call checkSpringBreak(spring_flag)
-        !call calcU(x, x_old, u)
-        call calcF_MAT(x, u, springs, e_mat, f_mat)
-        tu = 0.0d0
-    end function loop
+        do i = 1, n 
+            f(i,:) = f_tmp(i,2:)
+        enddo
+    end function initF
     
     function initD(points) result(d0)
         real(8), allocatable :: d0(:,:)
@@ -50,12 +41,30 @@ contains
         integer n, i
         
         n = size(points, 1)
-        allocate(x0(n,2))
+        allocate(x0(n,3))
         do i = 1, n
             x0(i,1) = points(i,2)
             x0(i,2) = points(i,3)
+            x0(i,3) = 0.0d0 !回転を初期値で与える時はここで
         enddo
     end function initX
+    
+    subroutine makeF(F_all, F)
+        real(8) F_all(:,:,:)
+        real(8) F(:,:), f_tmp
+        integer n, i, j, k
+        
+        n = size(F, 1)
+        do i = 1, 3
+            do j = 1, n 
+                f_tmp = 0.0d0
+                do k = 1, n
+                    f_tmp = f_tmp + F_all(i,j,k)
+                enddo
+                F(j, i) = F(j, i) + f_tmp 
+            enddo
+        enddo
+    end subroutine makeF
     
     subroutine makeD(x, d)
         real(8) x(:,:)
@@ -63,7 +72,6 @@ contains
         integer n, i, j
         
         n = size(x,1)
-        print *, n
         do i = 1, n
             do j = 1, n
                 if(i > j) then
@@ -75,36 +83,19 @@ contains
         enddo
     end subroutine makeD
     
-    subroutine checkSpringFlag(spring_flag)
+    subroutine checkSpringFlag(spring_flag, d, d0)
         integer spring_flag(:,:)
+        real(8) d(:,:)
+        real(8) d0(:,:)
         
         print *, "checkSpringFlag"
     end subroutine checkSpringFlag
     
-    subroutine calcF_MAT(x, u, springs, e_mat, f_mat)
-        real(8) x(:,:)
-        real(8) u(:,:)
-        real(8) springs(:,:,:)
-        real(8) e_mat(:,:,:)
-        real(8) f_mat(:,:,:)
-        real(8) f(2)
-        integer n, i, j
-        
-        n = size(f_mat,1)
-        do i = 2, n
-            do j = 1, (i-1)
-                f = calcf(x(i,:), x(j,:), u(i,:), u(j,:), springs(i,j,:), e_mat(i,j,:))
-                f_mat(i,j,:) = f
-                f_mat(j,i,:) = -f
-            enddo
-        enddo
-    end subroutine calcF_MAT
-    
-    function calcf(x_i, x_j, u_i, u_j, spring, e) result(f)
+    function calcf(x_i, x_j, u_i, u_j, r, e, spring) result(f)
         integer i, j
-        real(8) x_i(:), x_j(:), u_i(:), u_j(:), spring(:), e(:)
+        real(8) x_i(:), x_j(:), u_i(:), u_j(:), r, e(:), spring(:)
         real(8) d_un, d_us, alpha
-        real(8) fn, fs, f(2)
+        real(8) fn, fs, f(3)
         
         alpha = calcAlpha(x_i, x_j)
         d_un = (x_i(1) - x_j(1))*cos(alpha) + (x_i(2) - x_j(2))*sin(alpha)
@@ -118,6 +109,7 @@ contains
         
         f(1) = -fn*cos(alpha) + fs*sin(alpha)
         f(2) = -fn*sin(alpha) - fs*sin(alpha)
+        f(3) = -r * fs
     end function calcf
     
     function calcAlpha(x1, x2) result(alpha)
@@ -139,4 +131,36 @@ contains
             springs(int(tmp(i,1)),int(tmp(i,2)),:) = tmp(i,3:)
         enddo
     end function makeSpring
+    
+    subroutine updateF_all(x, u, r, e, d, d0, spring_flag, springs, F_all)
+        real(8) x(:,:)
+        real(8) u(:,:)
+        real(8) r(:)
+        real(8) e(:,:,:)
+        real(8) d(:,:)
+        real(8) d0(:,:)
+        integer spring_flag(:,:)
+        real(8) springs(:,:,:)
+        real(8) F_all(:,:,:)
+        
+        integer i, j, k, n
+        real(8) f(3)
+        
+        F_all = 0.0d0
+        call makeD(x, d)
+        call checkSpringFlag(spring_flag, d, d0)
+        
+        n = size(x, 1)
+        do i = 2, n
+            do j = 1, (i-1)
+                !if(spring_flag(i,j)) then 
+                    f = calcf(x(i,:), x(j,:), u(i,:), u(j,:), r(i), e(i, j, :), springs(i,j,:))
+                    do k = 1, 3
+                        F_all(k, i, j) = f(k)
+                        F_all(k, j, i) = -f(k)
+                    enddo
+                !endif
+            enddo
+        enddo
+    end subroutine updateF_all
 end module DEMModule

@@ -51,6 +51,7 @@ Contributor(s):
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>ConstModule.f90</itemPath>
       <itemPath>DEMModule.f90</itemPath>
       <itemPath>MethodModule.f90</itemPath>
       <itemPath>main.f90</itemPath>
@@ -60,6 +61,7 @@ Contributor(s):
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <itemPath>condition.dat</itemPath>
     <itemPath>point.dat</itemPath>
     <itemPath>point2.dat</itemPath>
     <itemPath>spring.dat</itemPath>
@@ -74,9 +76,13 @@ Contributor(s):
       </toolsSet>
       <compileType>
       </compileType>
+      <item path="ConstModule.f90" ex="false" tool="2" flavor2="0">
+      </item>
       <item path="DEMModule.f90" ex="false" tool="2" flavor2="0">
       </item>
       <item path="MethodModule.f90" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="condition.dat" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.f90" ex="false" tool="2" flavor2="0">
       </item>
@@ -107,9 +113,13 @@ Contributor(s):
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="ConstModule.f90" ex="false" tool="2" flavor2="0">
+      </item>
       <item path="DEMModule.f90" ex="false" tool="2" flavor2="0">
       </item>
       <item path="MethodModule.f90" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="condition.dat" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.f90" ex="false" tool="2" flavor2="0">
       </item>

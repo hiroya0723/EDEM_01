@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/ConstModule.o \
 	${OBJECTDIR}/DEMModule.o \
 	${OBJECTDIR}/MethodModule.o \
 	${OBJECTDIR}/main.o
@@ -63,6 +64,10 @@ LDLIBSOPTIONS=
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/edem_01.exe: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.f} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/edem_01 ${OBJECTFILES} ${LDLIBSOPTIONS}
+
+${OBJECTDIR}/ConstModule.o: ConstModule.f90
+	${MKDIR} -p ${OBJECTDIR}
+	$(COMPILE.f) -g -o ${OBJECTDIR}/ConstModule.o ConstModule.f90
 
 ${OBJECTDIR}/DEMModule.o: DEMModule.f90
 	${MKDIR} -p ${OBJECTDIR}
