@@ -1,23 +1,6 @@
-!
-! To change this license header, choose License Headers in Project Properties.
-! To change this template file, choose Tools | Templates
-! and open the template in the editor.
-!
-
-!     
-! File:   MethodModule.f90
-! Author: hiroya
-!
-! Created on 2018/05/27, 22:50
-!
-
 module MethodModule
     implicit none
 contains
-    subroutine hello()
-        print *, "hello"
-    end subroutine hello
-    
     subroutine printArray2(array)
         real(8) array(:,:)
         integer i, n
@@ -27,7 +10,16 @@ contains
         enddo
     end subroutine printArray2
     
-     subroutine printArray3(array)
+    subroutine printArray2_int(array)
+        integer array(:,:)
+        integer i, n
+        n = size(array, 1)
+        do i = 1, n
+            print *, array(i, :)
+        enddo
+    end subroutine printArray2_int
+    
+    subroutine printArray3(array)
         real(8) array(:,:,:)
         integer i, j, n, m
         n = size(array, 1)
